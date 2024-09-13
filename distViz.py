@@ -49,10 +49,26 @@ with np.errstate(divide='ignore', invalid='ignore'):
     hazard = np.divide(pdf, reliability)
     hazard[reliability == 0] = np.nan  # Handle division by zero
 
-title_fontsize = 16
-label_fontsize = 14
-line_width = 4.5
+# Define common style parameters
+title_fontsize = 18
+label_fontsize = 15
+line_width = 3.5
+background_color = '#f5f5f5'  # Very faint grey
 
+# Define a minimalistic style function
+def apply_minimal_style(ax):
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.yaxis.tick_left()
+    ax.xaxis.tick_bottom()
+    ax.grid(False)
+    ax.set_facecolor(background_color)
+    ax.xaxis.set_tick_params(pad=10)  # Spacing between tick labels and axis
+    ax.yaxis.set_tick_params(pad=10)  # Spacing between tick labels and axis
 
 col1, col2 = st.columns(2)
 with col1:
@@ -62,7 +78,7 @@ with col1:
     ax_pdf.set_title('Probability Density', fontsize=title_fontsize)
     ax_pdf.set_xlabel('x', fontsize=label_fontsize)
     ax_pdf.set_ylabel('Probability Density', fontsize=label_fontsize)
-    ax_pdf.legend()
+    apply_minimal_style(ax_pdf)
     ax_pdf.grid(False)  # Remove grid outlines
     st.pyplot(fig_pdf)
 
@@ -73,7 +89,7 @@ with col2:
     ax_cdf.set_title('Cumulative Density', fontsize=title_fontsize)
     ax_cdf.set_xlabel('x', fontsize=label_fontsize)
     ax_cdf.set_ylabel('Cumulative Probability', fontsize=label_fontsize)
-    ax_cdf.legend()
+    apply_minimal_style(ax_cdf)
     ax_cdf.grid(False)  # Remove grid outlines
     st.pyplot(fig_cdf)
 
@@ -86,7 +102,7 @@ with col3:
     ax_rel.set_title('Reliability Function', fontsize=title_fontsize)
     ax_rel.set_xlabel('x', fontsize=label_fontsize)
     ax_rel.set_ylabel('Reliability', fontsize=label_fontsize)
-    ax_rel.legend()
+    apply_minimal_style(ax_rel)
     ax_rel.grid(False)  # Remove grid outlines
     st.pyplot(fig_rel)
 
@@ -97,6 +113,6 @@ with col4:
     ax_haz.set_title('Hazard Function', fontsize=title_fontsize)
     ax_haz.set_xlabel('x', fontsize=label_fontsize)
     ax_haz.set_ylabel('Hazard Rate', fontsize=label_fontsize)
-    ax_haz.legend()
+    apply_minimal_style(ax_haz)
     ax_haz.grid(False)  # Remove grid outlines
     st.pyplot(fig_haz)
