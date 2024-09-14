@@ -135,6 +135,8 @@ elif distribution == 'Weibull':
 else:
     st.write('Please select a distribution.')
 
+st.markdown("---")
+
 # Compute statistics
 mean, std_dev, skewness = safe_stats(dist)
 disp_mean = round(mean, 2) if mean != 'undefined' else mean
@@ -142,116 +144,171 @@ disp_std_dev = round(std_dev, 2) if std_dev != 'undefined' else std_dev
 disp_skewness = round(skewness, 2) if skewness != 'undefined' else skewness
 
 # Display statistics side by side with bars above and below
-st.markdown("---")
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.markdown(f"<div style='text-align: center; font-weight: bold;'>Mean</div>", unsafe_allow_html=True)
-    st.markdown(f"<div style='text-align: center;'>{disp_mean}</div>", unsafe_allow_html=True)
-with col2:
-    st.markdown(f"<div style='text-align: center; font-weight: bold;'>Standard Deviation</div>", unsafe_allow_html=True)
-    st.markdown(f"<div style='text-align: center;'>{disp_std_dev}</div>", unsafe_allow_html=True)
-with col3:
-    st.markdown(f"<div style='text-align: center; font-weight: bold;'>Skewness</div>", unsafe_allow_html=True)
-    st.markdown(f"<div style='text-align: center;'>{disp_skewness}</div>", unsafe_allow_html=True)
-st.markdown("---")
+tab1, tab2 = st.tabs(["PDFs", "Likelihood"])
+
+with tab1:
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown(f"<div style='text-align: center; font-weight: bold;'>Mean</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: center;'>{disp_mean}</div>", unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"<div style='text-align: center; font-weight: bold;'>Standard Deviation</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: center;'>{disp_std_dev}</div>", unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"<div style='text-align: center; font-weight: bold;'>Skewness</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: center;'>{disp_skewness}</div>", unsafe_allow_html=True)
+    st.markdown("---")
 
 
-# Compute PDF, CDF, Reliability function, and Hazard function
-pdf = dist.pdf(x)
-cdf = dist.cdf(x)
-reliability = 1 - cdf  # Reliability function
-# Avoid division by zero for hazard function
-with np.errstate(divide='ignore', invalid='ignore'):
-    hazard = np.divide(pdf, reliability)
-    hazard[reliability == 0] = np.nan  # Handle division by zero
+    # Compute PDF, CDF, Reliability function, and Hazard function
+    pdf = dist.pdf(x)
+    cdf = dist.cdf(x)
+    reliability = 1 - cdf  # Reliability function
+    # Avoid division by zero for hazard function
+    with np.errstate(divide='ignore', invalid='ignore'):
+        hazard = np.divide(pdf, reliability)
+        hazard[reliability == 0] = np.nan  # Handle division by zero
 
-# Define common style parameters
-title_fontsize = 18
-label_fontsize = 15
-line_width = 3.5
-background_color = '#fafafa'  # Very faint grey
+    # Define common style parameters
+    title_fontsize = 18
+    label_fontsize = 15
+    line_width = 3.5
+    background_color = '#fafafa'  # Very faint grey
 
-# Define a minimalistic style function
-def apply_minimal_style(ax):
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.spines['bottom'].set_visible(False)
-    ax.xaxis.set_ticks_position('bottom')
-    ax.yaxis.set_ticks_position('left')
-    ax.yaxis.tick_left()
-    ax.xaxis.tick_bottom()
-    ax.grid(False)
-    ax.set_facecolor(background_color)
-    ax.xaxis.set_tick_params(pad=10)  # Spacing between tick labels and axis
-    ax.yaxis.set_tick_params(pad=10)  # Spacing between tick labels and axis
+    # Define a minimalistic style function
+    def apply_minimal_style(ax):
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+        ax.xaxis.set_ticks_position('bottom')
+        ax.yaxis.set_ticks_position('left')
+        ax.yaxis.tick_left()
+        ax.xaxis.tick_bottom()
+        ax.grid(False)
+        ax.set_facecolor(background_color)
+        ax.xaxis.set_tick_params(pad=10)  # Spacing between tick labels and axis
+        ax.yaxis.set_tick_params(pad=10)  # Spacing between tick labels and axis
 
-# Plot with dashed lines for mean and ±1 std_dev
-def plot_with_dashed_lines(ax, x, y, title, xlabel, ylabel, color):
-    # Apply minimal style
-    apply_minimal_style(ax)
-    # Plot the main line
-    ax.plot(x, y, color=color, linewidth=line_width)
+    # Plot with dashed lines for mean and ±1 std_dev
+    def plot_with_dashed_lines(ax, x, y, title, xlabel, ylabel, color):
+        # Apply minimal style
+        apply_minimal_style(ax)
+        # Plot the main line
+        ax.plot(x, y, color=color, linewidth=line_width)
 
-    # Define light sky blue color
-    light_sky_blue = '#4169E1'
+        # Define light sky blue color
+        light_sky_blue = '#4169E1'
 
-    # Compute y-values at mean and mean±std_dev
-    y_mean = np.interp(mean, x, y)
-    y_plus_std = np.interp(mean + std_dev, x, y)
-    y_minus_std = np.interp(mean - std_dev, x, y)
+        # Compute y-values at mean and mean±std_dev
+        y_mean = np.interp(mean, x, y)
+        y_plus_std = np.interp(mean + std_dev, x, y)
+        y_minus_std = np.interp(mean - std_dev, x, y)
 
-    # Plot vertical dashed lines from y=0 to the corresponding y-values
-    ax.vlines(mean, ymin=0, ymax=y_mean, linestyle='--', color=light_sky_blue, linewidth=2.1, label=f'Mean ({mean})')
-    ax.vlines(mean + std_dev, ymin=0, ymax=y_plus_std, linestyle='--', color=light_sky_blue, linewidth=1.4, label=f'+1 SD ({mean + std_dev:.2f})')
-    ax.vlines(mean - std_dev, ymin=0, ymax=y_minus_std, linestyle='--', color=light_sky_blue, linewidth=1.4, label=f'-1 SD ({mean - std_dev:.2f})')
+        # Plot vertical dashed lines from y=0 to the corresponding y-values
+        ax.vlines(mean, ymin=0, ymax=y_mean, linestyle='--', color=light_sky_blue, linewidth=2.1, label=f'Mean ({mean})')
+        ax.vlines(mean + std_dev, ymin=0, ymax=y_plus_std, linestyle='--', color=light_sky_blue, linewidth=1.4, label=f'+1 SD ({mean + std_dev:.2f})')
+        ax.vlines(mean - std_dev, ymin=0, ymax=y_minus_std, linestyle='--', color=light_sky_blue, linewidth=1.4, label=f'-1 SD ({mean - std_dev:.2f})')
 
-    # Set title and labels
-    ax.set_title(title, fontsize=title_fontsize)
-    ax.set_xlabel(xlabel, fontsize=label_fontsize)
-    ax.set_ylabel(ylabel, fontsize=label_fontsize)
-    # Remove grid if desired
-    ax.grid(False)
+        # Set title and labels
+        ax.set_title(title, fontsize=title_fontsize)
+        ax.set_xlabel(xlabel, fontsize=label_fontsize)
+        ax.set_ylabel(ylabel, fontsize=label_fontsize)
+        # Remove grid if desired
+        ax.grid(False)
 
-# Display plots in two columns
-col1, col2 = st.columns(2)
-with col1:
-    # Plot PDF
-    fig_pdf, ax_pdf = plt.subplots()
-    plot_with_dashed_lines(ax_pdf, x, pdf, 'Probability Density', 'x', 'PDF', 'blue')
-    st.pyplot(fig_pdf)
+    # Display plots in two columns
+    col1, col2 = st.columns(2)
+    with col1:
+        # Plot PDF
+        fig_pdf, ax_pdf = plt.subplots()
+        plot_with_dashed_lines(ax_pdf, x, pdf, 'Probability Density', 'x', 'PDF', 'blue')
+        st.pyplot(fig_pdf)
 
-with col2:
-    # Plot CDF
-    fig_cdf, ax_cdf = plt.subplots()
-    ax_cdf.plot(x, cdf, color='orange', linewidth=line_width)
-    ax_cdf.set_title('Cumulative Density', fontsize=title_fontsize)
-    ax_cdf.set_xlabel('x', fontsize=label_fontsize)
-    ax_cdf.set_ylabel('Cumulative Probability', fontsize=label_fontsize)
-    apply_minimal_style(ax_cdf)
-    ax_cdf.grid(False)  # Remove grid outlines
-    st.pyplot(fig_cdf)
+    with col2:
+        # Plot CDF
+        fig_cdf, ax_cdf = plt.subplots()
+        ax_cdf.plot(x, cdf, color='orange', linewidth=line_width)
+        ax_cdf.set_title('Cumulative Density', fontsize=title_fontsize)
+        ax_cdf.set_xlabel('x', fontsize=label_fontsize)
+        ax_cdf.set_ylabel('Cumulative Probability', fontsize=label_fontsize)
+        apply_minimal_style(ax_cdf)
+        ax_cdf.grid(False)  # Remove grid outlines
+        st.pyplot(fig_cdf)
 
-# Plot Reliability and Hazard functions side by side
-col3, col4 = st.columns(2)
-with col3:
-    # Plot Reliability function
-    fig_rel, ax_rel = plt.subplots()
-    ax_rel.plot(x, reliability, color='green', linewidth=line_width)
-    ax_rel.set_title('Reliability Function', fontsize=title_fontsize)
-    ax_rel.set_xlabel('x', fontsize=label_fontsize)
-    ax_rel.set_ylabel('Reliability', fontsize=label_fontsize)
-    apply_minimal_style(ax_rel)
-    ax_rel.grid(False)  # Remove grid outlines
-    st.pyplot(fig_rel)
+    # Plot Reliability and Hazard functions side by side
+    col3, col4 = st.columns(2)
+    with col3:
+        # Plot Reliability function
+        fig_rel, ax_rel = plt.subplots()
+        ax_rel.plot(x, reliability, color='green', linewidth=line_width)
+        ax_rel.set_title('Reliability Function', fontsize=title_fontsize)
+        ax_rel.set_xlabel('x', fontsize=label_fontsize)
+        ax_rel.set_ylabel('Reliability', fontsize=label_fontsize)
+        apply_minimal_style(ax_rel)
+        ax_rel.grid(False)  # Remove grid outlines
+        st.pyplot(fig_rel)
 
-with col4:
-    # Plot Hazard function
-    fig_haz, ax_haz = plt.subplots()
-    ax_haz.plot(x, hazard, color='red', linewidth=line_width)
-    ax_haz.set_title('Hazard Function', fontsize=title_fontsize)
-    ax_haz.set_xlabel('x', fontsize=label_fontsize)
-    ax_haz.set_ylabel('Hazard Rate', fontsize=label_fontsize)
-    apply_minimal_style(ax_haz)
-    ax_haz.grid(False)  # Remove grid outlines
-    st.pyplot(fig_haz)
+    with col4:
+        # Plot Hazard function
+        fig_haz, ax_haz = plt.subplots()
+        ax_haz.plot(x, hazard, color='red', linewidth=line_width)
+        ax_haz.set_title('Hazard Function', fontsize=title_fontsize)
+        ax_haz.set_xlabel('x', fontsize=label_fontsize)
+        ax_haz.set_ylabel('Hazard Rate', fontsize=label_fontsize)
+        apply_minimal_style(ax_haz)
+        ax_haz.grid(False)  # Remove grid outlines
+        st.pyplot(fig_haz)
+
+with tab2:
+    st.header("Exponential Distribution")
+
+    # Input for lambda parameter
+    lambda_param = st.slider(
+        "Select the lambda (rate) parameter",
+        min_value=0.1,
+        max_value=10.0,
+        value=1.0,
+        step=0.1
+    )
+
+    # Input for number of samples
+    num_samples = st.slider(
+        "Select the number of samples",
+        min_value=10,
+        max_value=1000,
+        value=100,
+        step=10
+    )
+
+    # Generate random samples
+    samples = np.random.exponential(scale=1 / lambda_param, size=num_samples)
+    st.write(
+        f"Generated {num_samples} samples from Exponential distribution with lambda = {lambda_param}"
+    )
+
+    # Compute the likelihood function for a range of lambda values
+    sum_samples = np.sum(samples)
+    n = num_samples
+    lambda_values = np.linspace(0.1, 10, 1000)
+    log_likelihoods = n * np.log(lambda_values) - lambda_values * sum_samples
+
+    # Plot the log-likelihood function
+    plt.figure(figsize=(10, 6))
+    plt.plot(lambda_values, log_likelihoods, label='Log-Likelihood')
+    plt.axvline(x=lambda_param, color='red', linestyle='--', label=f'Chosen λ = {lambda_param}')
+    plt.xlabel('Lambda (λ)')
+    plt.ylabel('Log-Likelihood')
+    plt.title('Log-Likelihood Function for Exponential Distribution')
+    plt.legend()
+    st.pyplot(plt)
+
+    # Compute and display the log-likelihood at the chosen lambda
+    log_likelihood_chosen = n * np.log(lambda_param) - lambda_param * sum_samples
+    st.write(
+        f"The log-likelihood at λ = {lambda_param} is {log_likelihood_chosen:.4f}"
+    )
+
+    # Show the maximum likelihood estimate (MLE) of lambda
+    mle_lambda = n / sum_samples
+    st.write(f"The maximum likelihood estimate (MLE) of λ is: {mle_lambda:.4f}")
