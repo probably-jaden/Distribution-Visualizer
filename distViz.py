@@ -223,7 +223,8 @@ st.markdown("---")
 mean, std_dev, skewness = safe_stats(dist)
 disp_mean = round(mean, 2) if mean != 'undefined' else mean
 disp_std_dev = round(std_dev, 2) if std_dev != 'undefined' else std_dev
-disp_skewness = round(skewness, 2) if skewness != 'undefined' else skewness
+#disp_skewness = round(skewness, 2) if skewness != 'undefined' else skewness
+disp_skewness = round(mean, 2) if mean != 'undefined' else mean
 
 # Display statistics side by side with bars above and below
 tab1, tab2 = st.tabs(["PDFs", "Likelihood"])
