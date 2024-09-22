@@ -28,6 +28,9 @@ def safe_stats(dist):
         skewness = 'undefined'
     return mean, std_dev, skewness
 
+# Select input method
+input_method = st.radio('Select input method for parameters', ['Sliders', 'Numeric Inputs'])
+
 # Select distribution
 distribution = st.selectbox('Select a distribution', [
     'Normal', 'Gamma', 'Beta', 'Exponential', 'Weibull', 'Cauchy', 'Chi-Square',
@@ -38,98 +41,170 @@ distribution = st.selectbox('Select a distribution', [
 # Input parameters and compute statistics
 if distribution == 'Normal':
     col1, col2 = st.columns(2)
-    with col1:
-        mean_input = st.select_slider('Mean (μ)', options=tick_marks, value=0.0)
-    with col2:
-        std_dev_input = st.select_slider('Standard Deviation (σ)', options=positive_tick_marks, value=1.0)
+    if input_method == 'Sliders':
+        with col1:
+            mean_input = st.select_slider('Mean (μ)', options=tick_marks, value=0.0)
+        with col2:
+            std_dev_input = st.select_slider('Standard Deviation (σ)', options=positive_tick_marks, value=1.0)
+    else:
+        with col1:
+            mean_input = st.number_input('Mean (μ)', value=0.0)
+        with col2:
+            std_dev_input = st.number_input('Standard Deviation (σ)', min_value=0.0, value=1.0)
     dist = norm(loc=mean_input, scale=std_dev_input)
     x = np.linspace(mean_input - 4*std_dev_input, mean_input + 4*std_dev_input, 500)
 elif distribution == 'Gamma':
     col1, col2 = st.columns(2)
-    with col1:
-        shape = st.select_slider('Shape (k)', options=positive_tick_marks, value=2.0)
-    with col2:
-        scale = st.select_slider('Scale (θ)', options=positive_tick_marks, value=2.0)
+    if input_method == 'Sliders':
+        with col1:
+            shape = st.select_slider('Shape (k)', options=positive_tick_marks, value=2.0)
+        with col2:
+            scale = st.select_slider('Scale (θ)', options=positive_tick_marks, value=2.0)
+    else:
+        with col1:
+            shape = st.number_input('Shape (k)', min_value=0.0, value=2.0)
+        with col2:
+            scale = st.number_input('Scale (θ)', min_value=0.0, value=2.0)
     dist = gamma(a=shape, scale=scale)
     x = np.linspace(0, dist.ppf(0.99), 500)
 elif distribution == 'Beta':
     col1, col2 = st.columns(2)
-    with col1:
-        a = st.select_slider('Alpha (α)', options=positive_tick_marks, value=2.0)
-    with col2:
-        b = st.select_slider('Beta (β)', options=positive_tick_marks, value=5.0)
+    if input_method == 'Sliders':
+        with col1:
+            a = st.select_slider('Alpha (α)', options=positive_tick_marks, value=2.0)
+        with col2:
+            b = st.select_slider('Beta (β)', options=positive_tick_marks, value=5.0)
+    else:
+        with col1:
+            a = st.number_input('Alpha (α)', min_value=0.0, value=2.0)
+        with col2:
+            b = st.number_input('Beta (β)', min_value=0.0, value=5.0)
     dist = beta(a=a, b=b)
     x = np.linspace(0, 1, 500)
 elif distribution == 'Exponential':
-    scale = st.select_slider('Scale (λ)', options=positive_tick_marks, value=1.0)
+    if input_method == 'Sliders':
+        scale = st.select_slider('Scale (λ)', options=positive_tick_marks, value=1.0)
+    else:
+        scale = st.number_input('Scale (λ)', min_value=0.0, value=1.0)
     dist = expon(scale=scale)
     x = np.linspace(0, dist.ppf(0.99), 500)
 elif distribution == 'Cauchy':
     col1, col2 = st.columns(2)
-    with col1:
-        loc = st.select_slider('Location (x₀)', options=tick_marks, value=0.0)
-    with col2:
-        scale = st.select_slider('Scale (γ)', options=positive_tick_marks, value=1.0)
+    if input_method == 'Sliders':
+        with col1:
+            loc = st.select_slider('Location (x₀)', options=tick_marks, value=0.0)
+        with col2:
+            scale = st.select_slider('Scale (γ)', options=positive_tick_marks, value=1.0)
+    else:
+        with col1:
+            loc = st.number_input('Location (x₀)', value=0.0)
+        with col2:
+            scale = st.number_input('Scale (γ)', min_value=0.0, value=1.0)
     dist = cauchy(loc=loc, scale=scale)
     x = np.linspace(dist.ppf(0.01), dist.ppf(0.99), 500)
 elif distribution == 'Chi-Square':
-    df = st.select_slider('Degrees of Freedom (k)', options=positive_tick_marks, value=2.0)
+    if input_method == 'Sliders':
+        df = st.select_slider('Degrees of Freedom (k)', options=positive_tick_marks, value=2.0)
+    else:
+        df = st.number_input('Degrees of Freedom (k)', min_value=1, value=2, step=1, format='%d')
     dist = chi2(df=df)
     x = np.linspace(0, dist.ppf(0.99), 500)
 elif distribution == 'Log-Normal':
     col1, col2 = st.columns(2)
-    with col1:
-        mu = st.select_slider('Mean of log (μ)', options=tick_marks, value=0.0)
-    with col2:
-        sigma = st.select_slider('Standard Deviation of log (σ)', options=positive_tick_marks, value=1.0)
+    if input_method == 'Sliders':
+        with col1:
+            mu = st.select_slider('Mean of log (μ)', options=tick_marks, value=0.0)
+        with col2:
+            sigma = st.select_slider('Standard Deviation of log (σ)', options=positive_tick_marks, value=1.0)
+    else:
+        with col1:
+            mu = st.number_input('Mean of log (μ)', value=0.0)
+        with col2:
+            sigma = st.number_input('Standard Deviation of log (σ)', min_value=0.0, value=1.0)
     dist = lognorm(s=sigma, scale=np.exp(mu))
     x = np.linspace(0, dist.ppf(0.99), 500)
 elif distribution == 'Erlang':
     col1, col2 = st.columns(2)
-    with col1:
-        k = st.select_slider('Shape (k)', options=positive_tick_marks, value=2.0)
-    with col2:
-        scale = st.select_slider('Scale (θ)', options=positive_tick_marks, value=1.0)
+    if input_method == 'Sliders':
+        with col1:
+            k = st.select_slider('Shape (k)', options=positive_tick_marks, value=2.0)
+        with col2:
+            scale = st.select_slider('Scale (θ)', options=positive_tick_marks, value=1.0)
+    else:
+        with col1:
+            k = st.number_input('Shape (k)', min_value=1, value=2, step=1, format='%d')
+        with col2:
+            scale = st.number_input('Scale (θ)', min_value=0.0, value=1.0)
     dist = erlang(a=int(k), scale=scale)
     x = np.linspace(0, dist.ppf(0.99), 500)
 elif distribution == 'Pareto':
-    b = st.select_slider('Shape (b)', options=positive_tick_marks, value=2.0)
+    if input_method == 'Sliders':
+        b = st.select_slider('Shape (b)', options=positive_tick_marks, value=2.0)
+    else:
+        b = st.number_input('Shape (b)', min_value=0.0, value=2.0)
     dist = pareto(b=b)
     x = np.linspace(dist.ppf(0.01), dist.ppf(0.99), 500)
 elif distribution == 'Log-Logistic':
-    c = st.select_slider('Shape (c)', options=positive_tick_marks, value=2.0)
+    if input_method == 'Sliders':
+        c = st.select_slider('Shape (c)', options=positive_tick_marks, value=2.0)
+    else:
+        c = st.number_input('Shape (c)', min_value=0.0, value=2.0)
     dist = fisk(c=c)
     x = np.linspace(0, dist.ppf(0.99), 500)
 elif distribution == 'Noncentral Chi-Square':
     col1, col2 = st.columns(2)
-    with col1:
-        df = st.select_slider('Degrees of Freedom (k)', options=positive_tick_marks, value=2.0)
-    with col2:
-        nc = st.select_slider('Noncentrality (λ)', options=positive_tick_marks, value=1.0)
+    if input_method == 'Sliders':
+        with col1:
+            df = st.select_slider('Degrees of Freedom (k)', options=positive_tick_marks, value=2.0)
+        with col2:
+            nc = st.select_slider('Noncentrality (λ)', options=positive_tick_marks, value=1.0)
+    else:
+        with col1:
+            df = st.number_input('Degrees of Freedom (k)', min_value=1, value=2, step=1, format='%d')
+        with col2:
+            nc = st.number_input('Noncentrality (λ)', min_value=0.0, value=1.0)
     dist = ncx2(df=df, nc=nc)
     x = np.linspace(0, dist.ppf(0.99), 500)
 elif distribution == 'Noncentral t':
     col1, col2 = st.columns(2)
-    with col1:
-        df = st.select_slider('Degrees of Freedom (k)', options=positive_tick_marks, value=10.0)
-    with col2:
-        nc = st.select_slider('Noncentrality (δ)', options=tick_marks, value=1.0)
+    if input_method == 'Sliders':
+        with col1:
+            df = st.select_slider('Degrees of Freedom (k)', options=positive_tick_marks, value=10.0)
+        with col2:
+            nc = st.select_slider('Noncentrality (δ)', options=tick_marks, value=1.0)
+    else:
+        with col1:
+            df = st.number_input('Degrees of Freedom (k)', min_value=1, value=10, step=1, format='%d')
+        with col2:
+            nc = st.number_input('Noncentrality (δ)', value=1.0)
     dist = nct(df=df, nc=nc)
     x = np.linspace(dist.ppf(0.01), dist.ppf(0.99), 500)
 elif distribution == 'Kolmogorov-Smirnov':
-    n = st.select_slider('Sample Size (n)', options=positive_tick_marks, value=10.0)
+    if input_method == 'Sliders':
+        n = st.select_slider('Sample Size (n)', options=positive_tick_marks, value=10.0)
+    else:
+        n = st.number_input('Sample Size (n)', min_value=1, value=10, step=1, format='%d')
     dist = kstwo(n=int(n))
     x = np.linspace(0, dist.ppf(0.99), 500)
 elif distribution == 'Power':
-    a = st.select_slider('Shape (a)', options=positive_tick_marks, value=2.0)
+    if input_method == 'Sliders':
+        a = st.select_slider('Shape (a)', options=positive_tick_marks, value=2.0)
+    else:
+        a = st.number_input('Shape (a)', min_value=0.0, value=2.0)
     dist = powerlaw(a=a)
     x = np.linspace(0, 1, 500)
 elif distribution == 'Weibull':
     col1, col2 = st.columns(2)
-    with col1:
-        c = st.slider('Shape (c)', min_value=0.1, max_value=5.0, value=1.5, step=0.1)
-    with col2:
-        scale = st.slider('Scale (λ)', min_value=0.1, max_value=10.0, value=1.0, step=0.1)
+    if input_method == 'Sliders':
+        with col1:
+            c = st.slider('Shape (c)', min_value=0.1, max_value=5.0, value=1.5, step=0.1)
+        with col2:
+            scale = st.slider('Scale (λ)', min_value=0.1, max_value=10.0, value=1.0, step=0.1)
+    else:
+        with col1:
+            c = st.number_input('Shape (c)', min_value=0.1, value=1.5)
+        with col2:
+            scale = st.number_input('Scale (λ)', min_value=0.1, value=1.0)
     dist = weibull_min(c=c, scale=scale)
     x = np.linspace(0, dist.ppf(0.99), 500)
 else:
@@ -264,32 +339,50 @@ with tab2:
     st.header("Exponential Distribution")
 
     # Input for lambda parameter
-    lambda_param = st.slider(
-        "Select the lambda (rate) parameter",
-        min_value=0.1,
-        max_value=10.0,
-        value=1.0,
-        step=0.1
-    )
+    if input_method == 'Sliders':
+        lambda_param = st.slider(
+            "Select the lambda (rate) parameter",
+            min_value=0.1,
+            max_value=10.0,
+            value=1.0,
+            step=0.1
+        )
+    else:
+        lambda_param = st.number_input(
+            "Enter the lambda (rate) parameter",
+            min_value=0.1,
+            value=1.0,
+            step=0.1
+        )
 
     # Input for number of samples
-    num_samples = st.slider(
-        "Select the number of samples",
-        min_value=10,
-        max_value=1000,
-        value=100,
-        step=10
-    )
+    if input_method == 'Sliders':
+        num_samples = st.slider(
+            "Select the number of samples",
+            min_value=10,
+            max_value=1000,
+            value=100,
+            step=10
+        )
+    else:
+        num_samples = st.number_input(
+            "Enter the number of samples",
+            min_value=10,
+            max_value=1000,
+            value=100,
+            step=10,
+            format='%d'
+        )
 
     # Generate random samples
-    samples = np.random.exponential(scale=1 / lambda_param, size=num_samples)
+    samples = np.random.exponential(scale=1 / lambda_param, size=int(num_samples))
     st.write(
-        f"Generated {num_samples} samples from Exponential distribution with lambda = {lambda_param}"
+        f"Generated {int(num_samples)} samples from Exponential distribution with lambda = {lambda_param}"
     )
 
     # Compute the likelihood function for a range of lambda values
     sum_samples = np.sum(samples)
-    n = num_samples
+    n = int(num_samples)
     lambda_values = np.linspace(0.1, 10, 1000)
     log_likelihoods = n * np.log(lambda_values) - lambda_values * sum_samples
 
